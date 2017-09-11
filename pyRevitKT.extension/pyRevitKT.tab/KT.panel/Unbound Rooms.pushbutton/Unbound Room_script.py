@@ -23,4 +23,5 @@ for room in rms:
     if area_param < 0.1:
         name_param = room.LookupParameter('Name')
         id_param = room.Id
-        print(name_param.AsString(),area_param,id_param.IsntegerValue)
+        print(name_param.AsString(),area_param,id_param.IntegerValue)
+        print(id_param)
