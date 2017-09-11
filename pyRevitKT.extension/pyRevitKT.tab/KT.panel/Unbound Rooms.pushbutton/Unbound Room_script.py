@@ -4,7 +4,7 @@ __title__ = 'Unbound\nRooms\nPurge'
 __author__ = 'Petar Mitev'
 
 # noinspection PyUnresolvedReferences
-from Autodesk.Revit.DB import FilteredElementCollector, ElementId, BuiltInCategory, Area
+from Autodesk.Revit.DB import FilteredElementCollector, ElementId, BuiltInCategory, Area, Transaction, TransactionGroup
 # noinspection PyUnresolvedReferences
 from Autodesk.Revit.DB.Architecture import Room
 # noinspection PyUnresolvedReferences
@@ -20,6 +20,7 @@ t = Transaction(doc, "Evaluate & Delete Rooms")
 t.Start()
 list = []
 
+print('**DELETED ROOMS**')
 for room in rms:
     area_param = room.LookupParameter('Area').AsDouble()
     if area_param < 0.1:
@@ -27,10 +28,9 @@ for room in rms:
         id_param = room.Id
         uid_param = room.UniqueId
         list.append(id_param)
-        #print(name_param.AsString(),area_param,id_param.IntegerValue)
         print('\tNAME: {0}\t\tAREA: {1}\t\tID:{2}'.format(name_param.AsString(),
-                                                            area_param,
-                                                            id_param.IntegerValue
+                                                            str(area_param).ljust(5),
+                                                            str(id_param.IntegerValue).ljust(10)
                                                             ))
 
 for id in list:
