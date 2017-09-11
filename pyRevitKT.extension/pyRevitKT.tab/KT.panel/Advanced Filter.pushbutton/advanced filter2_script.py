@@ -1,28 +1,29 @@
-"""Advanced Filter"""
+"""Advanced Collection of Data: Collects all the walls of height 10"""
 
-__title__ = 'Advanced\nFilter'
 __author__ = 'Petar Mitev'
 
-from pyrevit.coreutils import Timer
-timer = Timer()
-
-from System.Collections.Generic import List
 import Autodesk.Revit.DB as DB
-from Autodesk.Revit.DB import FilteredElementCollector, BuiltInCategory, Transaction
 
 doc = __revit__.ActiveUIDocument.Document
 uidoc = __revit__.ActiveUIDocument
 
-walls = DB.FilteredElementCollector(doc).OfCategory(DB.BuiltInCategory.OST_Walls).WhereElementIsNotElementType().ToElements()
+height_param_id = DB.ElementId(DB.BuiltInParameter.WALL_USER_HEIGHT_PARAM)
 
-tallwalls_ids = []
+height_param_prov = DB.ParameterValueProvider(height_param_id)
 
-for wall in walls:
-    heightp = wall.LookupParameter('Unconnected Height')
-    if heightp and heightp.AsDouble() == 10.0:
-        tallwalls_ids.append(wall.Id)
+param_equality = DB.FilterNumericEquals()
 
-uidoc.Selection.SetElementIds(List[DB.ElementId](tallwalls_ids))
+heigh_value_rule = DB.FilterDoubleRule(height_param_prov,
+                                       param_equality,
+                                       10.0,
+                                       1E-6)
 
-endtime = timer.get_time()
-print(endtime)
+param_filter = DB.ElementParameterFilter(heigh_value_rule)
+
+
+walls = DB.FilteredElementCollector(doc) \
+          .WherePasses(param_filter) \
+          .ToElementIds()
+
+
+uidoc.Selection.SetElementIds(walls)
