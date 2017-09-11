@@ -3,7 +3,6 @@
 __title__ = 'Unbound\nRooms\nPurge'
 __author__ = 'Petar Mitev'
 
-
 # noinspection PyUnresolvedReferences
 from Autodesk.Revit.DB import FilteredElementCollector, ElementId, BuiltInCategory, Area
 # noinspection PyUnresolvedReferences
@@ -17,7 +16,6 @@ doc = __revit__.ActiveUIDocument.Document
 rms = FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Rooms).WhereElementIsNotElementType()
 
 # Iterate over rooms and collect Area data
-
 t = Transaction(doc, "Evaluate & Delete Rooms")
 t.Start()
 list = []
@@ -29,7 +27,11 @@ for room in rms:
         id_param = room.Id
         uid_param = room.UniqueId
         list.append(id_param)
-        print(name_param.AsString(),area_param,id_param.IntegerValue)
+        #print(name_param.AsString(),area_param,id_param.IntegerValue)
+        print('\tNAME: {0}\t\tAREA: {1}\t\tID:{2}'.format(name_param.AsString(),
+                                                            area_param,
+                                                            id_param.IntegerValue
+                                                            ))
 
 for id in list:
     doc.Delete(id)
