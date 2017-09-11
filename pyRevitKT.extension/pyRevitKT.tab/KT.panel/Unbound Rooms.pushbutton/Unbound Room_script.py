@@ -24,7 +24,4 @@ for room in rms:
         name_param = room.LookupParameter('Name')
         id_param = room.Id
         print(name_param.AsString(),area_param,id_param.IntegerValue)
-<<<<<<< HEAD
         print(id_param)
-=======
->>>>>>> 29fe7bdf377fe3d59df3849fa905e4e996e20f0e
