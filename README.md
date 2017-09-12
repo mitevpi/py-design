@@ -7,6 +7,7 @@ See the original [pyRevit GitHub page](http://eirannejad.github.io/pyRevit/) for
 ### Current Tools & Scripts
 
 ```markdown
+<<<<<<< HEAD
 
 **Working**
 
@@ -14,6 +15,13 @@ See the original [pyRevit GitHub page](http://eirannejad.github.io/pyRevit/) for
 2. Unbound Room Purge
 
 **In Progress**
+=======
+
+#### Working
+
+1. Total Room Area
+2. Unbound Room Purge
+>>>>>>> bbeec3fe0202c90449e652db539364aff5bdfa34
 
 1. Advanced Element Filter
 
