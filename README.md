@@ -8,12 +8,12 @@ See the original [pyRevit GitHub page](http://eirannejad.github.io/pyRevit/) for
 
 ```markdown
 
-#### Working
+**Working**
 
 1. Total Room Area
 2. Unbound Room Purge
 
-#### In Progress
+**In Progress**
 
 1. Advanced Element Filter
 
