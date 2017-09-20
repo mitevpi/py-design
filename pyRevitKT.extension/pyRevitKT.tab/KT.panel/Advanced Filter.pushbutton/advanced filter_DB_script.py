@@ -27,5 +27,3 @@ walls = DB.FilteredElementCollector(doc) \
 
 
 uidoc.Selection.SetElementIds(walls)
-
-### test
