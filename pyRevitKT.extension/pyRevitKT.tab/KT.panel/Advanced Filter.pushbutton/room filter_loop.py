@@ -1,6 +1,7 @@
-import clr
 import sys
-sys.path.append("C:\Program Files (x86)\IronPython 2.7")
+pyt_path = r'C:\Program Files (x86)\IronPython 2.7'
+sys.path.append(pyt_path)
+import clr
 
 #random
 import random
@@ -25,6 +26,7 @@ from Autodesk.Revit.DB.Analysis import *
 
 #document
 doc = DocumentManager.Instance.CurrentDBDocument
+dataEnteringNode = IN
 OUT = []
 
 #import module for colors
