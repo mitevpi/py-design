@@ -59,11 +59,11 @@ colors = []
 solid_fill = UnwrapElement(IN[0])
 
 #generate colors based on departments
-for department in unique_departments:
+for d in unique_departments:
     color = randColor()
-    graphics_overrides[department] = OverrideGraphicSettings()
-    graphics_overrides[department].SetProjectionFillColor(color)
-    graphics_overrides[department].SetProjectionFillPatternId(solid_fill.Id)
+    graphics_overrides[d] = OverrideGraphicSettings()
+    graphics_overrides[d].SetProjectionFillColor(color)
+    graphics_overrides[d].SetProjectionFillPatternId(solid_fill.Id)
 
 #transaction start
 t = Transaction(doc, "Color Override Rooms")
@@ -73,8 +73,8 @@ view = doc.ActiveView
 
 #assign colors
 for room in rooms:
-    department = room.LookupParameter('Department Class')
-    view.SetElementOverrides(room.Id, graphics_overrides[department])
+    d = room.LookupParameter('Department Class').AsString()
+    view.SetElementOverrides(room.Id, graphics_overrides[d])
 
 t.Commit()
 t.Dispose()
