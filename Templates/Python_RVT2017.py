@@ -9,6 +9,8 @@ from random import randint
 
 #Import module for Revit
 clr.AddReference("RevitNodes")
+clr.AddReference('ProtoGeometry')
+from Autodesk.DesignScript.Geometry import *
 import Revit
 clr.ImportExtensions(Revit.Elements)
 
