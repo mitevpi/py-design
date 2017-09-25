@@ -1,3 +1,8 @@
+"""Randomly assign colors to rooms based on a selected parameter"""
+
+__title__ = 'Color Rooms\nper Param'
+__author__ = 'Petar Mitev'
+
 import sys
 pyt_path = r'C:\Program Files (x86)\IronPython 2.7\Lib'
 sys.path.append(pyt_path)
