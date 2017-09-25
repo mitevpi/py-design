@@ -1,6 +1,6 @@
 """Calculates total volume of all walls in the model."""
 
-__title__ = 'Room\nArea'
+__title__ = 'Total Room\nArea'
 __author__ = 'Petar Mitev'
 
 

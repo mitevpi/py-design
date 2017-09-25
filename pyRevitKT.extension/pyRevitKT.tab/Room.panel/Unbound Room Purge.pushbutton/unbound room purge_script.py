@@ -1,6 +1,6 @@
 """Find& Delete Unbound Rooms."""
 
-__title__ = 'Unbound\nRooms\nPurge'
+__title__ = 'Unbound Room\nPurge'
 __author__ = 'Petar Mitev'
 
 # noinspection PyUnresolvedReferences
