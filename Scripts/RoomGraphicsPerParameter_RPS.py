@@ -1,3 +1,8 @@
+"""Randomly assign colors to rooms based on a selected parameter"""
+
+__title__ = 'Color Rooms\nper Param'
+__author__ = 'Petar Mitev'
+
 import sys
 pyt_path = r'C:\Program Files (x86)\IronPython 2.7\Lib'
 sys.path.append(pyt_path)
@@ -29,6 +34,13 @@ from Autodesk.Revit.DB.Analysis import *
 doc = __revit__.ActiveUIDocument.Document
 uidoc = __revit__.ActiveUIDocument
 
+#rpw
+import rpw
+from rpw import revit, DB, UI
+
+#ui
+search_param = rpw.ui.forms.TextInput('Input Parameter', default='Department Class', description='Enter a Parameter', sort=True, exit_on_close=True)
+
 #import module for colors
 def randColor():
     rand_color = Color(random.randrange(0, 256), random.randrange(0, 256), random.randrange(0, 256))
@@ -42,7 +54,7 @@ unique_departments = []
 
 #check the rooms for department parameter
 for room in room_collector:
-    department_param = room.LookupParameter('Department Class')
+    department_param = room.LookupParameter(search_param)
 
     #if there is a department parameter, add it to a list
     if department_param.AsString != None:
@@ -74,7 +86,7 @@ view = doc.ActiveView
 
 #assign colors
 for room in rooms:
-    d = room.LookupParameter('Department Class').AsString()
+    d = room.LookupParameter(search_param).AsString()
     view.SetElementOverrides(room.Id, graphics_overrides[d])
 
 t.Commit()
