@@ -9,11 +9,11 @@ clr.AddReference("RevitNodes")
 clr.AddReference('ProtoGeometry')
 clr.AddReference("RevitServices")
 clr.AddReference('RevitAPI')
-clr.ImportExtensions(Revit.Elements)
 
 #import DesignScript
 from Autodesk.DesignScript.Geometry import *
 import Revit
+clr.ImportExtensions(Revit.Elements)
 
 #import module for the Document and transactions
 import RevitServices
