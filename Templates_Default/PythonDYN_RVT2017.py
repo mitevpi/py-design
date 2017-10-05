@@ -1,13 +1,13 @@
 #import sys
 import sys
-pyt_path = r'C:\Program Files (x86)\IronPython 2.7\Lib'
+pyt_path = r'C:\\Program Files (x86)\\IronPython 2.7\\Lib'
 sys.path.append(pyt_path)
 
 #import module for Revit
 import clr
-clr.AddReference("RevitNodes")
+clr.AddReference('RevitNodes')
 clr.AddReference('ProtoGeometry')
-clr.AddReference("RevitServices")
+clr.AddReference('RevitServices')
 clr.AddReference('RevitAPI')
 
 #import DesignScript
