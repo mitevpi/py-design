@@ -23,25 +23,11 @@ uidoc = __revit__.ActiveUIDocument
 search_param = rpw.ui.forms.TextInput('Wipe Category', default='Walls', description='Enter a Category to Wipe', sort=True, exit_on_close=True)
 
 #collect elements
-element_collector = db.Collector(of_category=search_param)
+element_collector = db.Collector(of_category=search_param, is_type=False)
+elements = element_collector.elements
 
-element_list = []
+print(element_collector)
+print(elements)
 
-for i in element_collector:
-    id_param = i.Id
-    uid_param = i.UniqueId
-    element_list.append(id_param)
-
-print(element_list)
-
-#transaction start
-t = Transaction(doc, "Wipe Elements")
-t.Start()
-
-view = doc.ActiveView
-
-for x in element_list:
-    doc.Delete(x)
-
-t.Commit()
-t.Dispose()
+with db.Transaction('Delete'):
+	[revit.doc.Delete(id) for id in element_collector.element_ids]
