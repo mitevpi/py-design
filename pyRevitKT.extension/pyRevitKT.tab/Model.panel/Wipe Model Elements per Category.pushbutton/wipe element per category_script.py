@@ -6,28 +6,14 @@ __author__ = 'Petar Mitev'
 import sys
 pyt_path = r'C:\Program Files (x86)\IronPython 2.7\Lib'
 sys.path.append(pyt_path)
-import clr
-import Revit
 
 #rpw
 import rpw
 from rpw import revit, db, ui, DB, UI
 from rpw.db.element import Element
-from rpw.base import BaseObjectWrapper
-
-#Import module for Revit
-clr.AddReference("RevitNodes")
-clr.AddReference('ProtoGeometry')
-clr.ImportExtensions(Revit.Elements)
-
-#import module for the Document and transactions
-clr.AddReference("RevitServices")
-import RevitServices
-from RevitServices.Persistence import DocumentManager
-from RevitServices.Transactions import TransactionManager
-
-#import Revit API
-clr.AddReference('RevitAPI')
+from rpw.utils.dotnet import clr, Process
+from rpw.utils.logger import logger
+from rpw.base import BaseObject, BaseObjectWrapper
 
 #document
 doc = __revit__.ActiveUIDocument.Document
