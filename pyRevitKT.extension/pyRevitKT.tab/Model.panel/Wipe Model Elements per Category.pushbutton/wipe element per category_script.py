@@ -10,7 +10,9 @@ import clr
 
 #rpw
 import rpw
-from rpw import revit, db, ui
+from rpw import revit, db, ui, DB, UI
+from rpw.db.element import Element
+from rpw.base import BaseObjectWrapper
 
 #Import module for Revit
 clr.AddReference("RevitNodes")
@@ -31,10 +33,10 @@ doc = __revit__.ActiveUIDocument.Document
 uidoc = __revit__.ActiveUIDocument
 
 #ui
-search_param = rpw.ui.forms.TextInput('Wipe Category', default='Wall', description='Enter a Category to Wipe', sort=True, exit_on_close=True)
+search_param = rpw.ui.forms.TextInput('Wipe Category', default='Walls', description='Enter a Category to Wipe', sort=True, exit_on_close=True)
 
 #collect elements
-element_collector = db.Collector(of_class=search_param)
+element_collector = db.Collector(of_category=search_param)
 
 element_list = []
 
@@ -46,10 +48,13 @@ for i in element_collector:
 print(element_list)
 
 #transaction start
-#t = Transaction(doc, "Wipe Elements")
-#t.Start()
+t = Transaction(doc, "Wipe Elements")
+t.Start()
 
-#view = doc.ActiveView
+view = doc.ActiveView
 
-#t.Commit()
-#t.Dispose()
+for x in element_list:
+    doc.Delete(x)
+
+t.Commit()
+t.Dispose()
