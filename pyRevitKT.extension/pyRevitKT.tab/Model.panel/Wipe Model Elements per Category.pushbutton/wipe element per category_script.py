@@ -29,5 +29,5 @@ elements = element_collector.elements
 print(element_collector)
 print(elements)
 
-with db.Transaction('Delete'):
+with db.Transaction('Wipe Elements of Category'):
 	[revit.doc.Delete(id) for id in element_collector.element_ids]
