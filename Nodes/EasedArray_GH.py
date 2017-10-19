@@ -1,15 +1,29 @@
+"""Constructs a recursive Koch curve.
+    Inputs:
+        x: The original line. (Line)
+        y: The the number of subdivisions. (int)
+    Outputs:
+        a: The Koch curve, as a list of lines.
+"""
 import Rhino.Geometry as rg
 import math
 
 topCurvePoints = []
 bottomCurvePoints = []
 linkedLines = []
+linkedLinesEnd = []
+linkedLinesStraight = []
+linkedLinesOutsideEdge = []
+linkedLinesStraightOutsideEdge = []
 intersectionPoints = []
 spacings = []
 profileExtrusions = []
 intersectionPlanes = []
+intersectionPlanesTop = []
+intersectionPlanesBottom = []
 lengthAtPt = 0
 finalLengthAtPt = 0
+totalLengthAtPt = 0
 go = True
 
 profileBackEdgeLength = profileBackEdge.GetLength()
@@ -19,18 +33,63 @@ extrusionOffsetRight = profileAnchorPt.DistanceTo( profileBackEdge.PointAtEnd )
 
 print "Left Offset: {} / Right Offset {}".format( extrusionOffsetLeft, extrusionOffsetRight )
 
-while lengthAtPt <= topCurve.GetLength() and go:
+iter = 0
+
+
+
+while totalLengthAtPt <= topCurve.GetLength() and go:
+    iter += 1
     tempProfileCurve = profileCurve.Duplicate()
     tempProfileCurve.Translate( rg.Line( profileAnchorPt, bottomCurve.PointAtLength(lengthAtPt) ).Direction )
     
-    topCurvePoint = topCurve.PointAtLength( lengthAtPt )
-    bottomCurvePoint = bottomCurve.PointAtLength( lengthAtPt )
-    
+    if lengthAtPt == 0:
+        topCurvePoint = topCurve.PointAtLength( 0 )
+        bottomCurvePoint = bottomCurve.PointAtLength( 0 )
+    else:
+        circleTop = rg.Circle( topCurvePoint, lengthAtPt ).ToNurbsCurve()
+        circleBottom = rg.Circle( bottomCurvePoint, lengthAtPt ).ToNurbsCurve()
+        intersectionsTop = rg.Intersect.Intersection.CurveCurve( topCurve, circleTop, 0, 0 )
+        intersectionsBottom = rg.Intersect.Intersection.CurveCurve( bottomCurve, circleBottom, 0, 0 )
+        if intersectionsBottom and intersectionsTop:
+            sortedListTop = sorted(intersectionsTop.Item, key=lambda x: x.ParameterA, reverse=True)
+            sortedListBottom = sorted(intersectionsBottom.Item, key=lambda x: x.ParameterA, reverse=True)
+        
+            topCurvePoint = sortedListTop[0].PointA
+            bottomCurvePoint = sortedListBottom[0].PointA
+  
+    circleOutsideEdgePointTop = rg.Circle( topCurvePoint, profileBackEdgeLength ).ToNurbsCurve()
+    circleOutsideEdgePointBottom = rg.Circle( bottomCurvePoint, profileBackEdgeLength ).ToNurbsCurve()
+    intersectionsOutsideEdgeTop = rg.Intersect.Intersection.CurveCurve( topCurve, circleOutsideEdgePointTop, 0, 0 )
+    intersectionsOutsideEdgeBottom = rg.Intersect.Intersection.CurveCurve( bottomCurve, circleOutsideEdgePointBottom, 0, 0 )
+    if intersectionsOutsideEdgeBottom and intersectionsOutsideEdgeTop:
+        sortedListOutsideEdgeTop = sorted(intersectionsOutsideEdgeTop.Item, key=lambda x: x.ParameterA, reverse=True)
+        sortedListOutsideEdgeBottom = sorted(intersectionsOutsideEdgeBottom.Item, key=lambda x: x.ParameterA, reverse=True)
+        bottomCurvePointOutsideEdge = sortedListOutsideEdgeBottom[0].PointA
+        topCurvePointOutsideEdge = sortedListOutsideEdgeTop[0].PointA
+        linkedLineOutsideEdge = rg.Line( bottomCurvePointOutsideEdge, topCurvePointOutsideEdge )
+        
     linkedLine = rg.Line( bottomCurvePoint, topCurvePoint )
 
-    planeTop = bottomCurve.PerpendicularFrameAt( bottomCurve.ClosestPoint( bottomCurve.PointAtLength( lengthAtPt ) )[1] )[1]
-    planeBottom = bottomCurve.PerpendicularFrameAt( bottomCurve.ClosestPoint( bottomCurve.PointAtLength( lengthAtPt ) )[1] )[1]
-    planeAvg = rg.Plane( (bottomCurvePoint+topCurvePoint)/2, (planeTop.XAxis+planeBottom.XAxis)/2, (planeTop.YAxis+planeBottom.YAxis)/2 )
+    planeTop = topCurve.PerpendicularFrameAt( topCurve.ClosestPoint( topCurvePoint )[1] )[1]
+    planeBottom = bottomCurve.PerpendicularFrameAt( bottomCurve.ClosestPoint( bottomCurvePoint )[1] )[1]
+    planeAvg = rg.Plane( ( bottomCurvePoint+topCurvePoint )/2, ( planeTop.XAxis+planeBottom.XAxis ) / 2, (planeTop.YAxis+planeBottom.YAxis)/2 )
+    
+    intersections = rg.Intersect.Intersection.CurvePlane( topCurve, planeBottom, 0 )
+    
+    if intersections:
+        sortedListTopIntersection = sorted(intersections.Item, key=lambda x: x.PointA.DistanceTo( bottomCurvePoint ))
+        linkedLineStraightTopPoint = sortedListTopIntersection[0].PointA
+        
+        circleOutsideEdgeStraightPointTop = rg.Circle( linkedLineStraightTopPoint, profileBackEdgeLength ).ToNurbsCurve()
+        intersectionsOutsideEdgeStraightTop = rg.Intersect.Intersection.CurveCurve( topCurve, circleOutsideEdgeStraightPointTop, 0, 0 )
+        if intersectionsOutsideEdgeStraightTop:
+            sortedListOutsideEdgeStraightTop = sorted(intersectionsOutsideEdgeStraightTop.Item, key=lambda x: x.ParameterA, reverse=True)
+            topCurvePointOutsideStraightEdge = sortedListOutsideEdgeStraightTop[0].PointA
+            linkedLineStraightOutsideEdge = rg.Line( bottomCurvePointOutsideEdge, topCurvePointOutsideStraightEdge )
+        
+        
+        linkedLineStraight = rg.Line( bottomCurvePoint, linkedLineStraightTopPoint )
+    
     
     if rg.Intersect.Intersection.CurvePlane( attractor, planeAvg, 0 ):
         intersectionPoints.append(  rg.Intersect.Intersection.CurvePlane( attractor, planeAvg, 0 ).Item[0].PointA )
@@ -49,8 +108,13 @@ while lengthAtPt <= topCurve.GetLength() and go:
         bottomCurvePoints.append( bottomCurvePoint )
         
         linkedLines.append( linkedLine )
+        linkedLinesStraight.append( linkedLineStraight )
+        linkedLinesOutsideEdge.append( linkedLineOutsideEdge )
+        linkedLinesStraightOutsideEdge.append( linkedLineStraightOutsideEdge )
         
         intersectionPlanes.append( planeAvg )
+        intersectionPlanesTop.append( planeTop )
+        intersectionPlanesBottom.append( planeBottom )
         
         spacings.append( spacing )
         
@@ -58,7 +122,11 @@ while lengthAtPt <= topCurve.GetLength() and go:
     else:
         go = False
     
-    lengthAtPt += spacing + profileBackEdge.GetLength()
+    totalLengthAtPt += lengthAtPt
+    lengthAtPt = spacing + profileBackEdgeLength
+    
+    if iter > 1000:
+        go = False
 
 print "Final Length: {}".format( finalLengthAtPt )
 print "Short by: {}".format( topCurve.GetLength() - finalLengthAtPt - profileBackEdgeLength )
