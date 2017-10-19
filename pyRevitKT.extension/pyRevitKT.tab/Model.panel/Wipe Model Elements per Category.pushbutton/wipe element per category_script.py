@@ -7,6 +7,7 @@ import sys
 pyt_path = r'C:\Program Files (x86)\IronPython 2.7\Lib'
 sys.path.append(pyt_path)
 import clr
+import Revit
 
 #rpw
 import rpw
