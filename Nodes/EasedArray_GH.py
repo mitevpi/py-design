@@ -6,7 +6,9 @@
         a: The Koch curve, as a list of lines.
 """
 import Rhino.Geometry as rg
+import rhinoscriptsyntax as rs
 import math
+import Rhino
 
 topCurvePoints = []
 bottomCurvePoints = []
@@ -15,12 +17,17 @@ linkedLinesEnd = []
 linkedLinesStraight = []
 linkedLinesOutsideEdge = []
 linkedLinesStraightOutsideEdge = []
+linkedCurvesStraight = []
 intersectionPoints = []
 spacings = []
-profileExtrusions = []
+profileSections = []
+profileSectionsTop = []
 intersectionPlanes = []
 intersectionPlanesTop = []
 intersectionPlanesBottom = []
+panel_surfaces = []
+angle_list_bot = []
+angle_list_top = []
 lengthAtPt = 0
 finalLengthAtPt = 0
 totalLengthAtPt = 0
@@ -35,12 +42,9 @@ print "Left Offset: {} / Right Offset {}".format( extrusionOffsetLeft, extrusion
 
 iter = 0
 
-
-
 while totalLengthAtPt <= topCurve.GetLength() and go:
     iter += 1
     tempProfileCurve = profileCurve.Duplicate()
-    tempProfileCurve.Translate( rg.Line( profileAnchorPt, bottomCurve.PointAtLength(lengthAtPt) ).Direction )
     
     if lengthAtPt == 0:
         topCurvePoint = topCurve.PointAtLength( 0 )
@@ -103,7 +107,7 @@ while totalLengthAtPt <= topCurve.GetLength() and go:
         spacing = minSpacing
         
     if lengthAtPt <= topCurve.GetLength() - profileBackEdgeLength:
-        profileExtrusions.append( tempProfileCurve )
+        profileSections.append( tempProfileCurve )
         topCurvePoints.append( topCurvePoint )
         bottomCurvePoints.append( bottomCurvePoint )
         
@@ -115,10 +119,33 @@ while totalLengthAtPt <= topCurve.GetLength() and go:
         intersectionPlanes.append( planeAvg )
         intersectionPlanesTop.append( planeTop )
         intersectionPlanesBottom.append( planeBottom )
-        
+        linkedCurvesStraight.append(rg.NurbsCurve.CreateFromLine(linkedLineStraight))
+        linkedCurvesStraight.append(rg.NurbsCurve.CreateFromLine(linkedLineStraightOutsideEdge))
         spacings.append( spacing )
         
         finalLengthAtPt = lengthAtPt
+        
+        #add the section curves, and rotate the profiles
+        tempProfileCurve.Translate( rg.Line( profileAnchorPt, bottomCurvePoint ).Direction )
+        tempProfileCurveTop = tempProfileCurve.Duplicate()
+        topPoint = rg.NurbsCurve.CreateFromLine(linkedLineStraight).PointAt(1)
+        tempProfileCurveTop.Translate( rg.Line( bottomCurvePoint, topPoint ).Direction )
+        profileSectionsTop.append(tempProfileCurveTop)
+
+        #rotate bottom section curves
+        v1 = rs.VectorCreate(profileBackEdge.PointAtStart, profileBackEdge.PointAtEnd)
+        v2 = rs.VectorCreate(bottomCurvePoint, rg.NurbsCurve.CreateFromLine(linkedLineStraightOutsideEdge).PointAt(0))
+        y_axis_vector = rg.Vector3d(0, 0, 1)
+        vector_angle = Rhino.RhinoMath.ToRadians(rs.VectorAngle(v1, v2))
+        angle_list_bot.append(vector_angle)
+        tempProfileCurve.Rotate(vector_angle, y_axis_vector, bottomCurvePoint)
+
+        #rotate top section curves
+        v3 = rs.VectorCreate(topPoint, rg.NurbsCurve.CreateFromLine(linkedLineStraightOutsideEdge).PointAt(1))
+        vector_angle = Rhino.RhinoMath.ToRadians(rs.VectorAngle(v1, v3))
+        angle_list_top.append(vector_angle)
+        tempProfileCurveTop.Rotate(vector_angle, y_axis_vector, topPoint)  
+
     else:
         go = False
     
@@ -127,6 +154,18 @@ while totalLengthAtPt <= topCurve.GetLength() and go:
     
     if iter > 1000:
         go = False
+
+#make panels, initial indeces for the "panel" space is 1,2. +2,+2 after that
+index_a = 1
+index_b = 2
+
+while len(linkedCurvesStraight) > index_b:
+    #create panels between mullions
+    lofts = rs.AddLoftSrf([linkedCurvesStraight[index_a], linkedCurvesStraight[index_b]])
+    panel_surfaces.append(lofts[0])
+    #move to next "panel" space
+    index_a = index_a + 2
+    index_b = index_b + 2
 
 print "Final Length: {}".format( finalLengthAtPt )
 print "Short by: {}".format( topCurve.GetLength() - finalLengthAtPt - profileBackEdgeLength )
