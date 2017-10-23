@@ -19,6 +19,7 @@ linkedLinesOutsideEdge = []
 linkedLinesStraightOutsideEdge = []
 linkedCurvesStraight = []
 intersectionPoints = []
+intersectionPointsPanel = []
 spacings = []
 profileSections = []
 profileSectionsTop = []
@@ -28,6 +29,8 @@ intersectionPlanesBottom = []
 panel_surfaces = []
 angle_list_bot = []
 angle_list_top = []
+plane_AvgBack = []
+curve_params_list = []
 lengthAtPt = 0
 finalLengthAtPt = 0
 totalLengthAtPt = 0
@@ -74,10 +77,11 @@ while totalLengthAtPt <= topCurve.GetLength() and go:
         
     linkedLine = rg.Line( bottomCurvePoint, topCurvePoint )
 
+    #array intersection planes
     planeTop = topCurve.PerpendicularFrameAt( topCurve.ClosestPoint( topCurvePoint )[1] )[1]
     planeBottom = bottomCurve.PerpendicularFrameAt( bottomCurve.ClosestPoint( bottomCurvePoint )[1] )[1]
     planeAvg = rg.Plane( ( bottomCurvePoint+topCurvePoint )/2, ( planeTop.XAxis+planeBottom.XAxis ) / 2, (planeTop.YAxis+planeBottom.YAxis)/2 )
-    
+
     intersections = rg.Intersect.Intersection.CurvePlane( topCurve, planeBottom, 0 )
     
     if intersections:
@@ -93,18 +97,35 @@ while totalLengthAtPt <= topCurve.GetLength() and go:
         
         
         linkedLineStraight = rg.Line( bottomCurvePoint, linkedLineStraightTopPoint )
+
+        #panel intersection planes
+        plane_AvgBack.append(rg.Plane( ( bottomCurvePointOutsideEdge+topCurvePointOutsideStraightEdge )/2, ( planeTop.XAxis+planeBottom.XAxis ) / 2, (planeTop.YAxis+planeBottom.YAxis)/2 ))
+        planeAvgBack = rg.Plane( ( bottomCurvePointOutsideEdge+topCurvePointOutsideStraightEdge )/2, ( planeTop.XAxis+planeBottom.XAxis ) / 2, (planeTop.YAxis+planeBottom.YAxis)/2 )
     
-    
+    #intersection check for main array
     if rg.Intersect.Intersection.CurvePlane( attractor, planeAvg, 0 ):
         intersectionPoints.append(  rg.Intersect.Intersection.CurvePlane( attractor, planeAvg, 0 ).Item[0].PointA )
     else:
         go = False
-        
-    spacing = ( round( ( minSpacing + ( ( ( intersectionPoints[-1].Z - bottomCurvePoint.Z )/( topCurvePoint.Z - bottomCurvePoint.Z ) ) * ( maxSpacing-minSpacing ) ) ) * roundTo ) / roundTo )
-    if spacing > maxSpacing:
-        spacing = maxSpacing
-    if spacing < minSpacing:
-        spacing = minSpacing
+
+    if panel_toggle == False:
+        #intersection check for panel dims
+        if rg.Intersect.Intersection.CurvePlane( attractor_panel, planeAvg, 0 ):
+            intersectionPointsPanel.append(  rg.Intersect.Intersection.CurvePlane( attractor_panel, planeAvg, 0 ).Item[0].PointA )
+        if rg.Intersect.Intersection.CurvePlane( attractor_panel, planeAvgBack, 0 ):
+            intersectionPointsPanel.append(  rg.Intersect.Intersection.CurvePlane( attractor_panel, planeAvgBack, 0 ).Item[0].PointA )          
+        else:
+            go = False
+
+        #normalize numbers for main array spacing    
+        spacing = ( round( ( minSpacing + ( ( ( intersectionPoints[-1].Z - bottomCurvePoint.Z )/( topCurvePoint.Z - bottomCurvePoint.Z ) ) * ( maxSpacing-minSpacing ) ) ) * roundTo ) / roundTo )
+        if spacing > maxSpacing:
+            spacing = maxSpacing
+        if spacing < minSpacing:
+            spacing = minSpacing
+
+        #normalize numbers for non euclidean panel lofts
+        curve_params = abs((((intersectionPointsPanel[-1].Z - bottomCurvePoint.Z) * (1 - 0)) / (topCurvePoint.Z - bottomCurvePoint.Z)) + 0)
         
     if lengthAtPt <= topCurve.GetLength() - profileBackEdgeLength:
         profileSections.append( tempProfileCurve )
@@ -122,6 +143,7 @@ while totalLengthAtPt <= topCurve.GetLength() and go:
         linkedCurvesStraight.append(rg.NurbsCurve.CreateFromLine(linkedLineStraight))
         linkedCurvesStraight.append(rg.NurbsCurve.CreateFromLine(linkedLineStraightOutsideEdge))
         spacings.append( spacing )
+        curve_params_list.append(curve_params)
         
         finalLengthAtPt = lengthAtPt
         
@@ -158,11 +180,30 @@ while totalLengthAtPt <= topCurve.GetLength() and go:
 #make panels, initial indeces for the "panel" space is 1,2. +2,+2 after that
 index_a = 1
 index_b = 2
+non_euclid_panels = []
 
+#loop for panel creation
 while len(linkedCurvesStraight) > index_b:
-    #create panels between mullions
+    #create euclidean panels
     lofts = rs.AddLoftSrf([linkedCurvesStraight[index_a], linkedCurvesStraight[index_b]])
     panel_surfaces.append(lofts[0])
+    #create non-euclidean panels
+    if panel_toggle == True:
+        segment_a = linkedCurvesStraight[index_a].Split(panel_edgeA)
+        segment_b = linkedCurvesStraight[index_b].Split(panel_edgeB)
+        non_euclid_segments = []
+        non_euclid_segments.append(segment_a[0])
+        non_euclid_segments.append(segment_b[0])
+        lofts2 = rs.AddLoftSrf([non_euclid_segments[0], non_euclid_segments[1]], loft_type=1)
+        non_euclid_panels.append(lofts2[0])
+    #if panel_toggle == False:
+       # segment_a = linkedCurvesStraight[index_a].Split(curve_params_list[index_a])
+        #segment_b = linkedCurvesStraight[index_b].Split(curve_params_list[index_b])
+        #non_euclid_segments = []
+        #non_euclid_segments.append(segment_a[0])
+        #non_euclid_segments.append(segment_b[0])
+        #lofts2 = rs.AddLoftSrf([non_euclid_segments[0], non_euclid_segments[1]], loft_type=1)
+        #non_euclid_panels.append(lofts2[0])
     #move to next "panel" space
     index_a = index_a + 2
     index_b = index_b + 2
