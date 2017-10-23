@@ -117,11 +117,11 @@ while totalLengthAtPt <= topCurve.GetLength() and go:
             go = False
 
         #normalize numbers for main array spacing    
-        spacing = ( round( ( minSpacing + ( ( ( intersectionPoints[-1].Z - bottomCurvePoint.Z )/( topCurvePoint.Z - bottomCurvePoint.Z ) ) * ( maxSpacing-minSpacing ) ) ) * roundTo ) / roundTo )
-        if spacing > maxSpacing:
-            spacing = maxSpacing
-        if spacing < minSpacing:
-            spacing = minSpacing
+    spacing = ( round( ( minSpacing + ( ( ( intersectionPoints[-1].Z - bottomCurvePoint.Z )/( topCurvePoint.Z - bottomCurvePoint.Z ) ) * ( maxSpacing-minSpacing ) ) ) * roundTo ) / roundTo )
+    if spacing > maxSpacing:
+        spacing = maxSpacing
+    if spacing < minSpacing:
+        spacing = minSpacing
         
     if lengthAtPt <= topCurve.GetLength() - profileBackEdgeLength:
         profileSections.append( tempProfileCurve )
@@ -203,10 +203,14 @@ while len(linkedCurvesStraight) > index_b:
         lofts2 = rs.AddLoftSrf([non_euclid_segments[0], non_euclid_segments[1]], loft_type=1)
         non_euclid_panels.append(lofts2[0])
     if panel_toggle == False:
-        segment_a = linkedCurvesStraight[index_a].Split(curve_params_list[index_a])
-        segment_b = linkedCurvesStraight[index_b].Split(curve_params_list[index_b])
-        #lofts2 = rs.AddLoftSrf([segment_a[0], segment_b[1]], loft_type=1)
-        #non_euclid_panels.append(lofts2[0])
+        try:
+            segment_a = linkedCurvesStraight[index_a].Split(curve_params_list[index_a])
+            segment_b = linkedCurvesStraight[index_b].Split(curve_params_list[index_b])
+            lofts2 = rs.AddLoftSrf([segment_a[0], segment_b[0]], loft_type=1)
+            non_euclid_panels.append(lofts2[0])
+        except:
+             pass
+        
     #move to next "panel" space
     index_a = index_a + 2
     index_b = index_b + 2
