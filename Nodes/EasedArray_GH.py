@@ -30,7 +30,6 @@ panel_surfaces = []
 angle_list_bot = []
 angle_list_top = []
 plane_AvgBack = []
-curve_params_list = []
 lengthAtPt = 0
 finalLengthAtPt = 0
 totalLengthAtPt = 0
@@ -123,9 +122,6 @@ while totalLengthAtPt <= topCurve.GetLength() and go:
             spacing = maxSpacing
         if spacing < minSpacing:
             spacing = minSpacing
-
-        #normalize numbers for non euclidean panel lofts
-        curve_params = abs((((intersectionPointsPanel[-1].Z - bottomCurvePoint.Z) * (1 - 0)) / (topCurvePoint.Z - bottomCurvePoint.Z)) + 0)
         
     if lengthAtPt <= topCurve.GetLength() - profileBackEdgeLength:
         profileSections.append( tempProfileCurve )
@@ -143,7 +139,6 @@ while totalLengthAtPt <= topCurve.GetLength() and go:
         linkedCurvesStraight.append(rg.NurbsCurve.CreateFromLine(linkedLineStraight))
         linkedCurvesStraight.append(rg.NurbsCurve.CreateFromLine(linkedLineStraightOutsideEdge))
         spacings.append( spacing )
-        curve_params_list.append(curve_params)
         
         finalLengthAtPt = lengthAtPt
         
@@ -177,6 +172,17 @@ while totalLengthAtPt <= topCurve.GetLength() and go:
     if iter > 1000:
         go = False
 
+#normalize numbers for curve parameters
+curve_params_list = []
+for i in intersectionPointsPanel:
+    x = abs((((i.Z - bottomCurvePoint.Z) * (1 - 0)) / (topCurvePoint.Z - bottomCurvePoint.Z)) + 0)
+    if x > 1:
+        x = 1
+    if x < 0:
+        x = 0
+    curve_params_list.append(x)
+
+
 #make panels, initial indeces for the "panel" space is 1,2. +2,+2 after that
 index_a = 1
 index_b = 2
@@ -196,13 +202,10 @@ while len(linkedCurvesStraight) > index_b:
         non_euclid_segments.append(segment_b[0])
         lofts2 = rs.AddLoftSrf([non_euclid_segments[0], non_euclid_segments[1]], loft_type=1)
         non_euclid_panels.append(lofts2[0])
-    #if panel_toggle == False:
-       # segment_a = linkedCurvesStraight[index_a].Split(curve_params_list[index_a])
-        #segment_b = linkedCurvesStraight[index_b].Split(curve_params_list[index_b])
-        #non_euclid_segments = []
-        #non_euclid_segments.append(segment_a[0])
-        #non_euclid_segments.append(segment_b[0])
-        #lofts2 = rs.AddLoftSrf([non_euclid_segments[0], non_euclid_segments[1]], loft_type=1)
+    if panel_toggle == False:
+        segment_a = linkedCurvesStraight[index_a].Split(curve_params_list[index_a])
+        segment_b = linkedCurvesStraight[index_b].Split(curve_params_list[index_b])
+        #lofts2 = rs.AddLoftSrf([segment_a[0], segment_b[1]], loft_type=1)
         #non_euclid_panels.append(lofts2[0])
     #move to next "panel" space
     index_a = index_a + 2
