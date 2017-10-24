@@ -215,26 +215,41 @@ while len(linkedCurvesStraight) > index_b:
     index_a = index_a + 2
     index_b = index_b + 2
 
-print "Final Length: {}".format( finalLengthAtPt )
-print "Short by: {}".format( topCurve.GetLength() - finalLengthAtPt - profileBackEdgeLength )
-print "Total Spaces: {}".format( len( spacings ) )
-print "Total Unique Spaces: {}".format( len( set( spacings ) ) )
+
+final_length = "Final Length: {}".format( finalLengthAtPt )
+short_by = "Short by: {}".format( topCurve.GetLength() - finalLengthAtPt - profileBackEdgeLength )
+total_spaces = "Total Spaces: {}".format( len( spacings ) )
+total_unique_spaces = "Total Unique Spaces: {}".format( len( set( spacings ) ) )
+print(final_length)
+print(short_by)
+print(total_spaces)
+print(total_unique_spaces)
+
+output = []
 
 if fitting == 0:
     # Do nothing
-    print 'No fitting applied...'
+    fitting_result = 'No fitting applied...'
+    print(fitting_result)
 elif fitting == 1:
     # Adjust All
-    print 'Adjusted all spacings...'
+    fitting_result = 'Adjusted all spacings...'
+    print(fitting_result)
 elif fitting == 2:
     # Adjust Ends
-    print 'Adjusted end spacings...'
+    fitting_result = 'Adjusted end spacings...'
+    print(fitting_result)
 elif fitting == 3:
     # Adjust End
-     print 'Adjusted end spacing...'
+    fitting_result = 'Adjusted end spacing...'
+    print(fitting_result)
 elif fitting == 4:
     # Adjust Start
-     print 'Adjusted start spacing...'
+    fitting_result = 'Adjusted start spacing...'
+    print(fitting_result)
 else:
     # Do nothing
-     print 'No fitting applied...'
+    fitting_result = 'No fitting applied...'
+    print(fitting_result)
+    
+output = [final_length, short_by, total_spaces, total_unique_spaces, fitting_result]
