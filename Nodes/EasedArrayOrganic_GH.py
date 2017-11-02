@@ -34,6 +34,10 @@ intersectionCirclesTop = []
 intersectionCirclesBottom = []
 go = True
 
+def sortParameter (items, Param, reverseSort):
+    newParam = 'x.' + Param
+    return sorted(items, key=lambda x: eval(newParam), reverse=reverseSort)
+
 profileBackEdgeLength = profileBackEdge.GetLength()
 
 extrusionOffsetLeft = profileAnchorPt.DistanceTo( profileBackEdge.PointAtStart )
@@ -58,8 +62,8 @@ while totalLengthAtPt <= topCurve.GetLength() and go:
         intersectionsTop = rg.Intersect.Intersection.CurveCurve( topCurve, circleTop, 0, 0 )
         intersectionsBottom = rg.Intersect.Intersection.CurveCurve( bottomCurve, circleBottom, 0, 0 )
         if intersectionsBottom and intersectionsTop:
-            sortedListTop = sorted(intersectionsTop.Item, key=lambda x: x.ParameterA, reverse=True)
-            sortedListBottom = sorted(intersectionsBottom.Item, key=lambda x: x.ParameterA, reverse=True)
+            sortedListTop = sortParameter(intersectionsTop.Item, 'ParameterA', True)
+            sortedListBottom = sortParameter(intersectionsBottom.Item, 'ParameterA', True)
         if sortedListTop[0].ParameterA > topCurveParameter or sortedListBottom[0].ParameterA > bottomCurveParameter:
             topCurvePoint = sortedListTop[0].PointA
             topCurveParameter = sortedListTop[0].ParameterA
@@ -76,8 +80,8 @@ while totalLengthAtPt <= topCurve.GetLength() and go:
     intersectionsOutsideEdgeTop = rg.Intersect.Intersection.CurveCurve( topCurve, circleOutsideEdgePointTop, 0, 0 )
     intersectionsOutsideEdgeBottom = rg.Intersect.Intersection.CurveCurve( bottomCurve, circleOutsideEdgePointBottom, 0, 0 )
     if intersectionsOutsideEdgeBottom and intersectionsOutsideEdgeTop:
-        sortedListOutsideEdgeTop = sorted(intersectionsOutsideEdgeTop.Item, key=lambda x: x.ParameterA, reverse=True)
-        sortedListOutsideEdgeBottom = sorted(intersectionsOutsideEdgeBottom.Item, key=lambda x: x.ParameterA, reverse=True)
+        sortedListOutsideEdgeTop = sortParameter(intersectionsOutsideEdgeTop.Item, 'ParameterA', True)
+        sortedListOutsideEdgeBottom = sortParameter(intersectionsOutsideEdgeBottom.Item, 'ParameterA', True)
         bottomCurvePointOutsideEdge = sortedListOutsideEdgeBottom[0].PointA
         bottomCurveParameterOutsideEdge = sortedListOutsideEdgeBottom[0].ParameterA
         topCurvePointOutsideEdge = sortedListOutsideEdgeTop[0].PointA
@@ -98,7 +102,7 @@ while totalLengthAtPt <= topCurve.GetLength() and go:
         circleOutsideEdgeStraightPointTop = rg.Circle( linkedLineStraightTopPoint, profileBackEdgeLength ).ToNurbsCurve()
         intersectionsOutsideEdgeStraightTop = rg.Intersect.Intersection.CurveCurve( topCurve, circleOutsideEdgeStraightPointTop, 0, 0 )
         if intersectionsOutsideEdgeStraightTop:
-            sortedListOutsideEdgeStraightTop = sorted(intersectionsOutsideEdgeStraightTop.Item, key=lambda x: x.ParameterA, reverse=True)
+            sortedListOutsideEdgeStraightTop = sortParameter(intersectionsOutsideEdgeStraightTop.Item, 'ParameterA', True)
             topCurvePointOutsideStraightEdge = sortedListOutsideEdgeStraightTop[0].PointA
             topCurveParameterOutsideStraightEdge = sortedListOutsideEdgeStraightTop[0].ParameterA
             linkedLineStraightOutsideEdge = rg.Line( bottomCurvePointOutsideEdge, topCurvePointOutsideStraightEdge )
@@ -115,18 +119,23 @@ while totalLengthAtPt <= topCurve.GetLength() and go:
     if guideCurve == 0:
         intersectionSrf = rg.Intersect.Intersection.BrepPlane(baseSurface, planeBottom, 0)
         intersectionSrfBack = rg.Intersect.Intersection.BrepPlane(baseSurface, planeBottomBack, 0)
-    if guideCurve == 1:
+    elif guideCurve == 1:
         intersectionSrf = rg.Intersect.Intersection.BrepPlane(baseSurface, planeAvg, 0)
         intersectionSrfBack = rg.Intersect.Intersection.BrepPlane(baseSurface, planeAvgBack, 0)
     else:
         intersectionSrf = rg.Intersect.Intersection.BrepPlane(baseSurface, planeTop, 0)
         intersectionSrfBack = rg.Intersect.Intersection.BrepPlane(baseSurface, planeTopBack, 0)
 
-    if len(intersectionSrf[1]) > 0:
+    if len(intersectionSrf[1]) > 0 and guideCurve == 0:
         surface_intersections.append( sorted(intersectionSrf[1], key=lambda x: planeBottom.Origin.DistanceTo(x.PointAtStart), reverse=False)[0] )
-        surface_intersections.append( sorted(intersectionSrfBack[1], key=lambda x: planeBottom.Origin.DistanceTo(x.PointAtStart), reverse=False)[0] )
-        
-    #intersection check for main array
+        surface_intersections.append( sorted(intersectionSrfBack[1], key=lambda x: planeBottomBack.Origin.DistanceTo(x.PointAtStart), reverse=False)[0] )
+    elif len(intersectionSrf[1]) > 0 and guideCurve == 1:
+        surface_intersections.append( sorted(intersectionSrf[1], key=lambda x: planeAvg.Origin.DistanceTo(x.PointAtStart), reverse=False)[0] )
+        surface_intersections.append( sorted(intersectionSrfBack[1], key=lambda x: planeAvgBack.Origin.DistanceTo(x.PointAtStart), reverse=False)[0] )
+    elif len(intersectionSrf[1]) > 0 and guideCurve == 2:
+        surface_intersections.append( sorted(intersectionSrf[1], key=lambda x: planeTop.Origin.DistanceTo(x.PointAtStart), reverse=False)[0] )
+        surface_intersections.append( sorted(intersectionSrfBack[1], key=lambda x: planeTopBack.Origin.DistanceTo(x.PointAtStart), reverse=False)[0] )
+
     attractorIntersections = rg.Intersect.Intersection.CurvePlane( attractor, planeAvg, 0 )
 
     if attractorIntersections:    
@@ -171,13 +180,13 @@ while totalLengthAtPt <= topCurve.GetLength() and go:
         v1 = rg.Line(profileBackEdge.PointAtStart, profileBackEdge.PointAtEnd).Direction
         v2 = rg.Line(bottomCurvePoint, rg.NurbsCurve.CreateFromLine(linkedLineStraightOutsideEdge).PointAt(0)).Direction
         y_axis_vector = rg.Vector3d(0, 0, 1)
-        vector_angle = Rhino.RhinoMath.ToRadians(rg.Vector3d.VectorAngle(v1, v2))
+        vector_angle = rg.Vector3d.VectorAngle(v1, v2)
         angle_list_bot.append(vector_angle)
         tempProfileCurve.Rotate(vector_angle, y_axis_vector, bottomCurvePoint)
 
         #rotate top section curves
         v3 = rg.Line(topPoint, rg.NurbsCurve.CreateFromLine(linkedLineStraightOutsideEdge).PointAt(1)).Direction
-        vector_angle = Rhino.RhinoMath.ToRadians(rg.Vector3d.VectorAngle(v1, v3))
+        vector_angle = rg.Vector3d.VectorAngle(v1, v3)
         angle_list_top.append(vector_angle)
         tempProfileCurveTop.Rotate(vector_angle, y_axis_vector, topPoint)  
 
