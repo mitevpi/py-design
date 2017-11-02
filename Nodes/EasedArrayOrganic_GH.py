@@ -11,10 +11,8 @@ import Rhino
 
 topCurvePoints = []
 bottomCurvePoints = []
-linkedLines = []
 linkedLinesEnd = []
 linkedLinesStraight = []
-linkedLinesOutsideEdge = []
 linkedLinesStraightOutsideEdge = []
 linkedCurvesStraight = []
 intersectionPoints = []
@@ -23,8 +21,9 @@ profileSections = []
 profileSectionsTop = []
 intersectionPlanes = []
 intersectionPlanesTop = []
+intersectionPlanesTopBack = []
 intersectionPlanesBottom = []
-surface_intersections2 = []
+intersectionPlanesBottomBack = []
 surface_intersections = []
 angle_list_bot = []
 angle_list_top = []
@@ -47,9 +46,9 @@ while totalLengthAtPt <= topCurve.GetLength() and go:
     tempProfileCurve = profileCurve.Duplicate()
     
     if lengthAtPt == 0:
-        topCurvePoint = topCurve.PointAtLength( 0 )
+        topCurvePoint = topCurve.PointAtStart
         topCurveParameter = topCurve.ClosestPoint( topCurvePoint )[1]
-        bottomCurvePoint = bottomCurve.PointAtLength( 0 )
+        bottomCurvePoint = bottomCurve.PointAtStart
         bottomCurveParameter = bottomCurve.ClosestPoint( bottomCurvePoint )[1]
     else:
         circleTop = rg.Circle( topCurvePoint, lengthAtPt ).ToNurbsCurve()
@@ -61,11 +60,16 @@ while totalLengthAtPt <= topCurve.GetLength() and go:
         if intersectionsBottom and intersectionsTop:
             sortedListTop = sorted(intersectionsTop.Item, key=lambda x: x.ParameterA, reverse=True)
             sortedListBottom = sorted(intersectionsBottom.Item, key=lambda x: x.ParameterA, reverse=True)
-        
+        if sortedListTop[0].ParameterA > topCurveParameter or sortedListBottom[0].ParameterA > bottomCurveParameter:
             topCurvePoint = sortedListTop[0].PointA
             topCurveParameter = sortedListTop[0].ParameterA
             bottomCurvePoint = sortedListBottom[0].PointA
             bottomCurveParameter = sortedListBottom[0].ParameterA
+        else:
+            topCurvePoint = topCurve.PointAtEnd
+            topCurveParameter = topCurve.ClosestPoint( topCurvePoint )[1]
+            bottomCurvePoint = bottomCurve.PointAtEnd
+            bottomCurveParameter = bottomCurve.ClosestPoint( bottomCurvePoint )[1]
       
     circleOutsideEdgePointTop = rg.Circle( topCurvePoint, profileBackEdgeLength ).ToNurbsCurve()
     circleOutsideEdgePointBottom = rg.Circle( bottomCurvePoint, profileBackEdgeLength ).ToNurbsCurve()
@@ -75,25 +79,16 @@ while totalLengthAtPt <= topCurve.GetLength() and go:
         sortedListOutsideEdgeTop = sorted(intersectionsOutsideEdgeTop.Item, key=lambda x: x.ParameterA, reverse=True)
         sortedListOutsideEdgeBottom = sorted(intersectionsOutsideEdgeBottom.Item, key=lambda x: x.ParameterA, reverse=True)
         bottomCurvePointOutsideEdge = sortedListOutsideEdgeBottom[0].PointA
+        bottomCurveParameterOutsideEdge = sortedListOutsideEdgeBottom[0].ParameterA
         topCurvePointOutsideEdge = sortedListOutsideEdgeTop[0].PointA
-        linkedLineOutsideEdge = rg.Line( bottomCurvePointOutsideEdge, topCurvePointOutsideEdge )
-        
-    linkedLine = rg.Line( bottomCurvePoint, topCurvePoint )
 
-    #array intersection planes
+    #array front intersection planes
     planeTop = topCurve.PerpendicularFrameAt( topCurveParameter )[1]
     planeBottom = bottomCurve.PerpendicularFrameAt( bottomCurveParameter )[1]
     planeAvg = rg.Plane( ( bottomCurvePoint+topCurvePoint )/2, ( planeTop.XAxis+planeBottom.XAxis ) / 2, (planeTop.YAxis+planeBottom.YAxis)/2 )
 
     #plane/curve intersections
     intersections = rg.Intersect.Intersection.CurvePlane( topCurve, planeBottom, 0 )
-
-    #plane/surface intersections
-    intersectionSrf = rg.Intersect.Intersection.BrepPlane(baseSurface, planeBottom, 0)
-
-
-    if intersectionSrf.Count > 0:
-        surface_intersections.append( sorted(intersectionSrf[1], key=lambda x: planeBottom.Origin.DistanceTo(x.PointAtStart), reverse=False)[0] )
 
     #sort main array intersections
     if intersections:
@@ -105,19 +100,37 @@ while totalLengthAtPt <= topCurve.GetLength() and go:
         if intersectionsOutsideEdgeStraightTop:
             sortedListOutsideEdgeStraightTop = sorted(intersectionsOutsideEdgeStraightTop.Item, key=lambda x: x.ParameterA, reverse=True)
             topCurvePointOutsideStraightEdge = sortedListOutsideEdgeStraightTop[0].PointA
+            topCurveParameterOutsideStraightEdge = sortedListOutsideEdgeStraightTop[0].ParameterA
             linkedLineStraightOutsideEdge = rg.Line( bottomCurvePointOutsideEdge, topCurvePointOutsideStraightEdge )
-        
-        
-        linkedLineStraight = rg.Line( bottomCurvePoint, linkedLineStraightTopPoint )
 
-        #panel intersection planes
-        planeAvgBack = rg.Plane( ( bottomCurvePointOutsideEdge+topCurvePointOutsideStraightEdge )/2, ( planeTop.XAxis+planeBottom.XAxis ) / 2, (planeTop.YAxis+planeBottom.YAxis)/2 )
-    
+    #create straight lines    
+    linkedLineStraight = rg.Line( bottomCurvePoint, linkedLineStraightTopPoint )
+
+    #array back intersection planes
+    planeTopBack = topCurve.PerpendicularFrameAt( topCurveParameterOutsideStraightEdge )[1]
+    planeBottomBack = bottomCurve.PerpendicularFrameAt( bottomCurveParameterOutsideEdge)[1]
+    planeAvgBack = rg.Plane( ( bottomCurvePointOutsideEdge+topCurvePointOutsideStraightEdge )/2, ( planeTop.XAxis+planeBottom.XAxis ) / 2, (planeTop.YAxis+planeBottom.YAxis)/2 )
+
+    #intersection check for network srf
+    if guideCurve == 0:
+        intersectionSrf = rg.Intersect.Intersection.BrepPlane(baseSurface, planeBottom, 0)
+        intersectionSrfBack = rg.Intersect.Intersection.BrepPlane(baseSurface, planeBottomBack, 0)
+    if guideCurve == 1:
+        intersectionSrf = rg.Intersect.Intersection.BrepPlane(baseSurface, planeAvg, 0)
+        intersectionSrfBack = rg.Intersect.Intersection.BrepPlane(baseSurface, planeAvgBack, 0)
+    else:
+        intersectionSrf = rg.Intersect.Intersection.BrepPlane(baseSurface, planeTop, 0)
+        intersectionSrfBack = rg.Intersect.Intersection.BrepPlane(baseSurface, planeTopBack, 0)
+
+    if len(intersectionSrf[1]) > 0:
+        surface_intersections.append( sorted(intersectionSrf[1], key=lambda x: planeBottom.Origin.DistanceTo(x.PointAtStart), reverse=False)[0] )
+        surface_intersections.append( sorted(intersectionSrfBack[1], key=lambda x: planeBottom.Origin.DistanceTo(x.PointAtStart), reverse=False)[0] )
+        
     #intersection check for main array
     attractorIntersections = rg.Intersect.Intersection.CurvePlane( attractor, planeAvg, 0 )
+
     if attractorIntersections:    
         intersectionPoints.append(  sorted(attractorIntersections.Item, key=lambda x: planeAvg.Origin.DistanceTo(x.PointA), reverse=False)[0].PointA )
-        #intersectionPoints.append(  rg.Intersect.Intersection.CurvePlane( attractor, planeAvg, 0 ).Item[0].PointA )
     else:
         go = False
 
@@ -133,14 +146,14 @@ while totalLengthAtPt <= topCurve.GetLength() and go:
         topCurvePoints.append( topCurvePoint )
         bottomCurvePoints.append( bottomCurvePoint )
         
-        linkedLines.append( linkedLine )
         linkedLinesStraight.append( linkedLineStraight )
-        linkedLinesOutsideEdge.append( linkedLineOutsideEdge )
         linkedLinesStraightOutsideEdge.append( linkedLineStraightOutsideEdge )
         
         intersectionPlanes.append( planeAvg )
         intersectionPlanesTop.append( planeTop )
+        intersectionPlanesTopBack.append( planeTopBack )
         intersectionPlanesBottom.append( planeBottom )
+        intersectionPlanesBottomBack.append( planeBottomBack )
         linkedCurvesStraight.append(rg.NurbsCurve.CreateFromLine(linkedLineStraight))
         linkedCurvesStraight.append(rg.NurbsCurve.CreateFromLine(linkedLineStraightOutsideEdge))
         spacings.append( spacing )
