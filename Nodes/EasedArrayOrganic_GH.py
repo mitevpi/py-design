@@ -25,6 +25,7 @@ intersectionPlanesTopBack = []
 intersectionPlanesBottom = []
 intersectionPlanesBottomBack = []
 surface_intersections = []
+surface_intersections_back = []
 angle_list_bot = []
 angle_list_top = []
 lengthAtPt = 0
@@ -38,9 +39,6 @@ def sortParameter (items, Param, reverseSort):
     return sorted(items, key=lambda x: eval(Param), reverse=reverseSort)
 
 profileBackEdgeLength = profileBackEdge.GetLength()
-
-extrusionOffsetLeft = profileAnchorPt.DistanceTo( profileBackEdge.PointAtStart )
-extrusionOffsetRight = profileAnchorPt.DistanceTo( profileBackEdge.PointAtEnd )
 
 iter = 0
 
@@ -82,15 +80,12 @@ while totalLengthAtPt <= topCurve.GetLength() and go:
         sortedListOutsideEdgeTop = sortParameter(intersectionsOutsideEdgeTop.Item, 'x.ParameterA', True)
         sortedListOutsideEdgeBottom = sortParameter(intersectionsOutsideEdgeBottom.Item, 'x.ParameterA', True)
         bottomCurvePointOutsideEdge = sortedListOutsideEdgeBottom[0].PointA
-        bottomCurveParameterOutsideEdge = sortedListOutsideEdgeBottom[0].ParameterA
         topCurvePointOutsideEdge = sortedListOutsideEdgeTop[0].PointA
 
     #array front intersection planes
-    planeTopParameter = topCurve.ClosestPoint(linkedLineStraightTopPoint)[1]
-    planeTop = topCurve.PerpendicularFrameAt( planeTopParameter )[1]
+
     planeBottomParameter = bottomCurve.ClosestPoint(bottomCurvePoint)[1]
     planeBottom = bottomCurve.PerpendicularFrameAt( planeBottomParameter )[1]
-    planeAvg = rg.Plane( ( bottomCurvePoint+topCurvePoint )/2, ( planeTop.XAxis+planeBottom.XAxis ) / 2, (planeTop.YAxis+planeBottom.YAxis)/2 )
 
     #plane/curve intersections
     intersections = rg.Intersect.Intersection.CurvePlane( topCurve, planeBottom, 0 )
@@ -105,18 +100,19 @@ while totalLengthAtPt <= topCurve.GetLength() and go:
         if intersectionsOutsideEdgeStraightTop:
             sortedListOutsideEdgeStraightTop = sortParameter(intersectionsOutsideEdgeStraightTop.Item, 'x.ParameterA', True)
             topCurvePointOutsideStraightEdge = sortedListOutsideEdgeStraightTop[0].PointA
-            topCurveParameterOutsideStraightEdge = sortedListOutsideEdgeStraightTop[0].ParameterA
-            linkedLineStraightOutsideEdge = rg.Line( bottomCurvePointOutsideEdge, topCurvePointOutsideStraightEdge )
 
     #create straight lines    
     linkedLineStraight = rg.Line( bottomCurvePoint, linkedLineStraightTopPoint )
+    linkedLineStraightOutsideEdge = rg.Line( bottomCurvePointOutsideEdge, topCurvePointOutsideStraightEdge )
+    planeTopParameter = topCurve.ClosestPoint(linkedLineStraightTopPoint)[1]
+    planeTop = topCurve.PerpendicularFrameAt( planeTopParameter )[1]
+    planeAvg = rg.Plane( ( bottomCurvePoint+topCurvePoint )/2, ( planeTop.XAxis+planeBottom.XAxis ) / 2, (planeTop.YAxis+planeBottom.YAxis)/2 )
 
     #array back intersection planes
     planeTopBackParameter = topCurve.ClosestPoint(topCurvePointOutsideStraightEdge)[1]
     planeTopBack = topCurve.PerpendicularFrameAt( planeTopBackParameter)[1]
     planeBottomBackParameter = bottomCurve.ClosestPoint(bottomCurvePointOutsideEdge)[1]
     planeBottomBack = bottomCurve.PerpendicularFrameAt( planeBottomBackParameter)[1]
-
     planeAvgBack = rg.Plane( ( bottomCurvePointOutsideEdge+topCurvePointOutsideStraightEdge )/2, ( planeTop.XAxis+planeBottom.XAxis ) / 2, (planeTop.YAxis+planeBottom.YAxis)/2 )
 
     #intersection check for network srf
@@ -132,13 +128,13 @@ while totalLengthAtPt <= topCurve.GetLength() and go:
 
     if len(intersectionSrf[1]) > 0 and guideCurve == 0:
         surface_intersections.append( sortParameter(intersectionSrf[1], 'planeBottom.Origin.DistanceTo(x.PointAtStart)', False)[0] )
-        surface_intersections.append( sortParameter(intersectionSrfBack[1], 'planeBottomBack.Origin.DistanceTo(x.PointAtStart)', False)[0] )
+        surface_intersections_back.append( sortParameter(intersectionSrfBack[1], 'planeBottomBack.Origin.DistanceTo(x.PointAtStart)', False)[0] )
     elif len(intersectionSrf[1]) > 0 and guideCurve == 1:
         surface_intersections.append( sortParameter(intersectionSrf[1], 'planeAvg.Origin.DistanceTo(x.PointAtStart)', False)[0] )
-        surface_intersections.append( sortParameter(intersectionSrfBack[1], 'planeAvgBack.Origin.DistanceTo(x.PointAtStart)', False)[0] )
+        surface_intersections_back.append( sortParameter(intersectionSrfBack[1], 'planeAvgBack.Origin.DistanceTo(x.PointAtStart)', False)[0] )
     elif len(intersectionSrf[1]) > 0 and guideCurve == 2:
         surface_intersections.append( sortParameter(intersectionSrf[1], 'planeTop.Origin.DistanceTo(x.PointAtStart)', False)[0] )
-        surface_intersections.append( sortParameter(intersectionSrfBack[1], 'planeTopBack.Origin.DistanceTo(x.PointAtStart)', False)[0] )
+        surface_intersections_back.append( sortParameter(intersectionSrfBack[1], 'planeTopBack.Origin.DistanceTo(x.PointAtStart)', False)[0] )
 
     attractorIntersections = rg.Intersect.Intersection.CurvePlane( attractor, planeAvg, 0 )
 
@@ -202,6 +198,28 @@ while totalLengthAtPt <= topCurve.GetLength() and go:
     
     if iter > 10000:
         go = False
+
+
+
+panel_list = []
+segment_a_list = []
+segment_b_list = []
+#loop for panel creation
+
+for i in surface_intersections_back:
+    segment_b = i.Split(panel_edgeB * i.GetLength())
+    indexCount = surface_intersections_back.index(i) + 1
+    if indexCount > len(surface_intersections):
+        indexCount = len(sufrace_intersections)
+    try:
+        segment_a = surface_intersections[indexCount].Split(panel_edgeA * i.GetLength())
+    except:
+        pass
+    non_euclid_segments = []
+    non_euclid_segments.append(segment_a[0])
+    non_euclid_segments.append(segment_b[0])
+    lofts = rg.Brep.CreateFromLoft(non_euclid_segments, rg.Point3d.Unset, rg.Point3d.Unset, rg.LoftType.Tight, False)
+    panel_list.append(lofts[0])
 
 final_length = "Final Length: {}".format( finalLengthAtPt )
 short_by = "Short by: {}".format( topCurve.GetLength() - finalLengthAtPt - profileBackEdgeLength )
