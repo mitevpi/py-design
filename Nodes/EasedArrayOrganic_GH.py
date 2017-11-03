@@ -30,6 +30,10 @@ finalLengthAtPt = 0
 totalLengthAtPt = 0
 intersectionCirclesTop = []
 intersectionCirclesBottom = []
+planeAvg = 0
+planeTop = 0
+planeAvgBack = 0
+planeTopBack = 0
 go = True
 
 def sortParameter (items):
@@ -139,7 +143,7 @@ while totalLengthAtPt <= topCurve.GetLength() and go:
     attractorIntersections = rg.Intersect.Intersection.CurvePlane( attractor, planeBottom, 0 )
 
     if attractorIntersections:    
-        intersectionPoints.append(  sorted(attractorIntersections.Item, key=lambda x: planeAvg.Origin.DistanceTo(x.PointA), reverse=False)[0].PointA )
+        intersectionPoints.append(  sorted(attractorIntersections.Item, key=lambda x: planeBottom.Origin.DistanceTo(x.PointA), reverse=False)[0].PointA )
     else:
         go = False
 
@@ -198,24 +202,32 @@ while totalLengthAtPt <= topCurve.GetLength() and go:
         go = False
 
 panel_list = []
+panel_solid_list = []
 segment_a_list = []
 segment_b_list = []
 
 #loop for panel creation
 for i in surface_intersections_back:
-    segment_b = i.Split(panel_edgeB * i.GetLength())
+    segment_b = i.Split(panel_edgeB * i.GetLength())[0]    
     indexCount = surface_intersections_back.index(i) + 1
     if indexCount > len(surface_intersections):
         indexCount = len(sufrace_intersections)
     try:
-        segment_a = surface_intersections[indexCount].Split(panel_edgeA * i.GetLength())
+        segment_a = surface_intersections[indexCount].Split(panel_edgeA * i.GetLength())[0]
     except:
         pass
     non_euclid_segments = []
-    non_euclid_segments.append(segment_a[0])
-    non_euclid_segments.append(segment_b[0])
+    non_euclid_segments.append(segment_a)
+    non_euclid_segments.append(segment_b)
     lofts = rg.Brep.CreateFromLoft(non_euclid_segments, rg.Point3d.Unset, rg.Point3d.Unset, rg.LoftType.Tight, False)
+    
+    #create solid panels - flip surface direction
+    if solid_toggle == True:
+        faces = (lofts[0]).Faces[0]
+        facesFlipped = (rg.Brep.CreateFromSurface(faces.Reverse(0))).Faces[0]
+        solidPanel = rg.Brep.CreateFromOffsetFace(facesFlipped, panel_thickness, 0, False, True)
     panel_list.append(lofts[0])
+    panel_solid_list.append(solidPanel)
 
 final_length = "Final Length: {}".format( finalLengthAtPt )
 short_by = "Short by: {}".format( topCurve.GetLength() - finalLengthAtPt - profileBackEdgeLength )
