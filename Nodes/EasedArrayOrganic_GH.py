@@ -25,6 +25,10 @@ intersectionPlanesBottom = []
 intersectionPlanesBottomBack = []
 surface_intersections = []
 surface_intersections_back = []
+surface_intersections_aux = []
+surface_intersections_aux_back = []
+intersectionAuxSrf = []
+intersectionAuxSrfBack = []
 lengthAtPt = 0
 finalLengthAtPt = 0
 totalLengthAtPt = 0
@@ -109,10 +113,19 @@ while totalLengthAtPt <= topCurve.GetLength() and go:
     planeBottomBackParameter = bottomCurve.ClosestPoint(bottomCurvePointOutsideEdge)[1]
     planeBottomBack = bottomCurve.PerpendicularFrameAt( planeBottomBackParameter)[1]
 
-    #intersection check for network srf
+    #intersection check for parent network srf
     if guideCurve == 0:
         intersectionSrf = rg.Intersect.Intersection.BrepPlane(baseSurface, planeBottom, 0)
         intersectionSrfBack = rg.Intersect.Intersection.BrepPlane(baseSurface, planeBottomBack, 0)
+        
+        #intersection check for auxillary network srf(s)
+        for i in auxSurfaces:
+            tempIntersect = rg.Intersect.Intersection.BrepPlane(i, planeBottom, 0)[1]
+            tempIntersectBack = rg.Intersect.Intersection.BrepPlane(i, planeBottomBack, 0)[1]
+            if tempIntersect:
+                intersectionAuxSrf.append( sorted(tempIntersect, key=lambda x: planeBottom.Origin.DistanceTo(x.PointAtStart), reverse=False)[0] )
+            if tempIntersectBack:
+                intersectionAuxSrfBack.append( sorted(tempIntersectBack, key=lambda x: planeBottom.Origin.DistanceTo(x.PointAtStart), reverse=False)[0] )
     elif guideCurve == 1:
         planeTopParameter = topCurve.ClosestPoint(linkedLineStraightTopPoint)[1]
         planeTop = topCurve.PerpendicularFrameAt( planeTopParameter )[1]
@@ -132,7 +145,7 @@ while totalLengthAtPt <= topCurve.GetLength() and go:
 
     if len(intersectionSrf[1]) > 0 and guideCurve == 0:
         surface_intersections.append( sorted(intersectionSrf[1], key=lambda x: planeBottom.Origin.DistanceTo(x.PointAtStart), reverse=False)[0] )
-        surface_intersections_back.append( sorted(intersectionSrfBack[1], key=lambda x: planeBottomBack.Origin.DistanceTo(x.PointAtStart), reverse=False)[0] ) 
+        surface_intersections_back.append( sorted(intersectionSrfBack[1], key=lambda x: planeBottomBack.Origin.DistanceTo(x.PointAtStart), reverse=False)[0] )
     elif len(intersectionSrf[1]) > 0 and guideCurve == 1:
         surface_intersections.append( sorted(intersectionSrf[1], key=lambda x: planeAvg.Origin.DistanceTo(x.PointAtStart), reverse=False)[0] )
         surface_intersections_back.append( sorted(intersectionSrfBack[1], key=lambda x: planeAvgBack.Origin.DistanceTo(x.PointAtStart), reverse=False)[0] )
