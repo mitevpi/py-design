@@ -66,6 +66,8 @@ for i in lineStyleSubTypes:
         conformIdList.append(i.Id)
         comboBoxBuild.append("'{}': '{}'".format(i.Name, i.Name))
 
+comboBoxString = ','.join(comboBoxBuild)
+
 # Collect Noncomforming Line Elements in Revit
 lineCollector = FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Lines).WhereElementIsNotElementType().ToElements()
 lineElementList = []
@@ -83,7 +85,8 @@ for i in lineCollector:
             nonconformLineElementNamesUQ.append(i.LineStyle.Name)
             # add unique names to flexform UI
             flexFormBuild.append(eval("Label({})".format("'{}'".format(i.LineStyle.Name))))
-            flexFormBuild.append(eval("ComboBox('Box', {})".format("{'Opt 1': 10.0, 'Opt 2': 20.0}")))
+            flexFormBuild.append(eval("ComboBox('Box', {})".format("{" + comboBoxString + "}")))
+
 
 # Flex Form
 components = flexFormBuild
