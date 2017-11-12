@@ -87,8 +87,8 @@ tempDict = {}
 templateDict = {}
 inputCount = 0
 for i in lineCollector:
+    # collect all nonconforming line elements from Revit
     if i.LineStyle.Name in nonconformList:
-        # collect all nonconforming line elements from Revit
         nonconformLineElements.append(i)
         nonconformLineElementNames.append(i.LineStyle.Name)
         if i.LineStyle.Name not in nonconformLineElementNamesUQ:
@@ -103,6 +103,7 @@ for i in lineCollector:
             # master dictionary append for debug
             tempDict[lineString] = i.LineStyle.Name
 
+    # if the line conforms to the standard, add it to the template dict for setting LineStyle
     else:
         templateDict[i.LineStyle.Name] = i.LineStyle
 
