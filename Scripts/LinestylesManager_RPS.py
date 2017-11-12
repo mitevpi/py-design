@@ -75,6 +75,7 @@ nonconformLineElements = []
 nonconformLineElementNames = []
 nonconformLineElementNamesUQ = []
 flexFormBuild = []
+inputCount = 0
 for i in lineCollector:
     if i.LineStyle.Name in nonconformList:
         # collect all nonconforming line elements from Revit
@@ -85,14 +86,18 @@ for i in lineCollector:
             nonconformLineElementNamesUQ.append(i.LineStyle.Name)
             # add unique names to flexform UI
             flexFormBuild.append(eval("Label({})".format("'{}'".format(i.LineStyle.Name))))
-            flexFormBuild.append(eval("ComboBox('Box', {})".format("{" + comboBoxString + "}")))
-
+            lineString = ''.join(e for e in i.LineStyle.Name if e.isalnum())
+            flexFormBuild.append(eval("ComboBox({}, {})".format("'" + lineString + "'","{" + comboBoxString + "}")))
+            inputCount = inputCount + 1
 
 # Flex Form
+flexFormBuild.append(eval("Button('Run')"))
 components = flexFormBuild
 form = FlexForm('Line Style Manager', components)
 form.show()
-#test = form.values
+userInput = form.values
+
+print userInput
 
 # Show Results
 print "Number of Line Styles in Current File: {}".format( len( existingLines ))
