@@ -75,6 +75,8 @@ nonconformLineElements = []
 nonconformLineElementNames = []
 nonconformLineElementNamesUQ = []
 flexFormBuild = []
+tempDict = {}
+templateDict = {}
 inputCount = 0
 for i in lineCollector:
     if i.LineStyle.Name in nonconformList:
@@ -90,14 +92,18 @@ for i in lineCollector:
             flexFormBuild.append(eval("ComboBox({}, {})".format("'" + lineString + "'","{" + comboBoxString + "}")))
             inputCount = inputCount + 1
 
+            # master dictionary append for debug
+            tempDict[lineString] = i.LineStyle.Name
+
+    else:
+        templateDict[i.LineStyle.Name] = i.LineStyle
+
 # Flex Form
 flexFormBuild.append(eval("Button('Run')"))
 components = flexFormBuild
 form = FlexForm('Line Style Manager', components)
 form.show()
 userInput = form.values
-
-print userInput
 
 # Show Results
 print "Number of Line Styles in Current File: {}".format( len( existingLines ))
@@ -108,3 +114,25 @@ print "Number of Nonconforming Line Styles: {}".format( len( nonconformList ))
 print nonconformList
 print "Number of Nonconforming Line Elements: {}".format( len( nonconformLineElements ))
 print nonconformLineElementNamesUQ
+
+# Create Master Dictionary for Line Style Overrides
+masterDict = {}
+for i in userInput:
+    newKey = tempDict[i]
+    newValue = userInput[i]
+    masterDict[newKey] = newValue
+
+t = Transaction(doc, "Color Override Rooms")
+t.Start()
+
+# Change Line Styles in Revit Document
+for i in nonconformLineElements:
+    #print the names of the line styles to convert to
+    newName = masterDict[i.LineStyle.Name]
+    print newName
+    print templateDict[newName]
+    print i.LineStyle
+    print '____________'
+
+t.Commit()
+t.Dispose()
