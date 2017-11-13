@@ -117,15 +117,9 @@ while totalLengthAtPt <= topCurve.GetLength() and go:
     if guideCurve == 0:
         intersectionSrf = rg.Intersect.Intersection.BrepPlane(baseSurface, planeBottom, 0)
         intersectionSrfBack = rg.Intersect.Intersection.BrepPlane(baseSurface, planeBottomBack, 0)
-        
-        #intersection check for auxillary network srf(s)
-        for i in auxSurfaces:
-            tempIntersect = rg.Intersect.Intersection.BrepPlane(i, planeBottom, 0)[1]
-            tempIntersectBack = rg.Intersect.Intersection.BrepPlane(i, planeBottomBack, 0)[1]
-            if tempIntersect:
-                intersectionAuxSrf.append( sorted(tempIntersect, key=lambda x: planeBottom.Origin.DistanceTo(x.PointAtStart), reverse=False)[0] )
-            if tempIntersectBack:
-                intersectionAuxSrfBack.append( sorted(tempIntersectBack, key=lambda x: planeBottom.Origin.DistanceTo(x.PointAtStart), reverse=False)[0] )
+                
+    
+    #guide curve toggle WIP
     elif guideCurve == 1:
         planeTopParameter = topCurve.ClosestPoint(linkedLineStraightTopPoint)[1]
         planeTop = topCurve.PerpendicularFrameAt( planeTopParameter )[1]
@@ -221,18 +215,27 @@ segment_b_list = []
 
 #loop for panel creation
 for i in surface_intersections_back:
-    segment_b = i.Split(panel_edgeB * i.GetLength())[0]    
+    segment_b = i.Split(panel_edgeB * i.GetLength())[0]  
+    segment_b2 = i  
     indexCount = surface_intersections_back.index(i) + 1
     if indexCount > len(surface_intersections):
         indexCount = len(sufrace_intersections)
     try:
         segment_a = surface_intersections[indexCount].Split(panel_edgeA * i.GetLength())[0]
+        segment_a2 = surface_intersections[indexCount]
     except:
         pass
     non_euclid_segments = []
+    euclid_segments = []
     non_euclid_segments.append(segment_a)
     non_euclid_segments.append(segment_b)
-    lofts = rg.Brep.CreateFromLoft(non_euclid_segments, rg.Point3d.Unset, rg.Point3d.Unset, rg.LoftType.Tight, False)
+    euclid_segments.append(segment_a2)
+    euclid_segments.append(segment_b2)
+
+    if panelToggle == True:
+        lofts = rg.Brep.CreateFromLoft(non_euclid_segments, rg.Point3d.Unset, rg.Point3d.Unset, rg.LoftType.Tight, False)
+    else:
+        lofts = rg.Brep.CreateFromLoft(euclid_segments, rg.Point3d.Unset, rg.Point3d.Unset, rg.LoftType.Tight, False)
     
     #create solid panels - flip surface direction
     if solid_toggle == True:

@@ -8,24 +8,14 @@ pyt_path = r'C:\Program Files (x86)\IronPython 2.7\Lib'
 sys.path.append(pyt_path)
 
 import clr
-clr.AddReference('ProtoGeometry')
-from Autodesk.DesignScript.Geometry import *
-clr.AddReference("RevitNodes")
-import Revit
-clr.ImportExtensions(Revit.Elements)
-clr.ImportExtensions(Revit.GeometryConversion)
-clr.AddReference("RevitServices")
-import RevitServices
-from RevitServices.Persistence import DocumentManager
-from RevitServices.Transactions import TransactionManager
-from System.Collections.Generic import *
-
 # Import RevitAPI
 clr.AddReference("RevitAPI")
-import Autodesk
 from Autodesk.Revit.DB import *
 
 # Import RPW
+import rpw
+from rpw import revit, db, ui, DB, UI
+from rpw.db.element import Element
 from rpw import ui
 from rpw.ui.forms import select_file, select_folder
 from rpw.ui.forms import FlexForm, Label, ComboBox, TextBox, TextBox, Separator, Button
@@ -34,10 +24,8 @@ from rpw.ui.forms import FlexForm, Label, ComboBox, TextBox, TextBox, Separator,
 import csv
 import itertools
 
-doc = DocumentManager.Instance.CurrentDBDocument
-uiapp = DocumentManager.Instance.CurrentUIApplication
-app = uiapp.Application
-uidoc=DocumentManager.Instance.CurrentUIApplication.ActiveUIDocument
+doc = __revit__.ActiveUIDocument.Document
+uidoc = __revit__.ActiveUIDocument
 
 # Open & Parse Standards File
 standardsList = []
