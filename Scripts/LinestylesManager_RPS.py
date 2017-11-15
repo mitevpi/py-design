@@ -129,11 +129,8 @@ t.Dispose()
 
 # Show Results
 print "Number of Line Styles in Standards: {}".format( len( standardsList ))
-print standardsList
 print "Number of Line Styles in Current File: {}".format( len( existingLines ))
-print existingLines
 print "Number of Nonconforming Line Styles: {}".format( len( nonconformList ))
-print nonconformList
 print "Number of Conforming Line Styles: {}".format(len(existingLines) - len( nonconformList ))
 print "Number of Nonconforming Line Elements: {}".format( len( nonconformLineElements ))
 print "Number of Conforming Line Elements: {}".format( len(lineCollector) - len( nonconformLineElements ))
