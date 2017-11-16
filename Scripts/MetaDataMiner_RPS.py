@@ -31,7 +31,6 @@ import json
 doc = __revit__.ActiveUIDocument.Document
 uidoc = __revit__.ActiveUIDocument
 
-log_file = (r'Y:\\pyRevit Library\\Logs\\pyRevitTracking.csv')
 desktop = op.expandvars('%userprofile%\\desktop')
 data_file = os.path.join(desktop, "metadata.txt")
 
