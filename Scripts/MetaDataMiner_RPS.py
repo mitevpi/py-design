@@ -79,40 +79,36 @@ if form.values['mine_standard'] == True:
     lineStyle = doc.Settings.Categories.get_Item(BuiltInCategory.OST_Lines)
     lineStyleSubTypes = lineStyle.SubCategories
     existLineDict = {}
-    existingLines = []
-    existingLineIds = []
     for i in lineStyleSubTypes:
         existLine = {}
-        name = i.Name
-        ID = i.Id
-        existingLines.append(name)
-        existingLineIds.append(ID)
         existLine['Name'] = str(i.Name)
         existLine['Id'] = str(i.Id)
         existLineDict[i.Name] = existLine
 
     # Check Standards Against Existing Line Styles
-    nonconformList = []
-    nonconformIdList = []
-    conformList = []
-    conformIdList = []
     conformDict = {}
     nonconformDict = {}
     for i in lineStyleSubTypes:
         if i.Name not in lineStandardsList:
             nonConform = {}
-            nonconformList.append(i.Name)
-            nonconformIdList.append(i.Id)
             nonConform['Name'] = str(i.Name)
             nonConform['Id'] = str(i.Id)
             nonconformDict[i.Name] = nonConform
         else:
             conform = {}
-            conformList.append(i.Name)
-            conformIdList.append(i.Id)
             conform['Name'] = str(i.Name)
             conform['Id'] = str(i.Id)
             conformDict[i.Name] = conform
+
+# Metadata dictionary - Workset Standards
+if form.values['mine_standard'] == True:
+    lineStyleDict = {}
+    lineStyleDict['Existing Linestyle Data'] = existLineDict
+    lineStyleDict['Conforming Linestyle Data'] = conformDict
+    lineStyleDict['Non-Conforming Linestyle Data'] = nonconformDict
+    lineStyleDict['Existing Linestyle Count'] = len(existLineDict)   
+    lineStyleDict['Nonconforming Linestyle Count'] = len(nonconformDict)
+    lineStyleDict['Conforming Linestyle Count'] = len(conformDict)
 
 # Metadata dictionary - Workset Standards
 if form.values['mine_standard'] == True:
@@ -129,16 +125,9 @@ if form.values['mine_standard'] == True:
 # Metadata dictionary - STANDARDS
 if form.values['mine_standard'] == True:
     standardDict = {}
-
-    # Line Standards
-    standardDict['Existing Linestyle Count'] = len(existingLines)   
-    standardDict['Nonconforming Linestyle Count'] = len(nonconformList)
-    standardDict['Conforming Linestyle Count'] = len(conformList)
-
+    
     # NEW Line Standards
-    standardDict['Existing Linestyle Data'] = existLineDict
-    standardDict['Conforming Linestyle Data'] = conformDict
-    standardDict['Non-Conforming Linestyle Data'] = nonconformDict
+    standardDict['Line Style Data'] = lineStyleDict
 
     # Workset Standards
     standardDict['Worksets'] = docWorksetsDict
