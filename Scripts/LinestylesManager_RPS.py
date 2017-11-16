@@ -16,7 +16,6 @@ from Autodesk.Revit.DB import *
 import rpw
 from rpw import revit, db, ui, DB, UI
 from rpw.db.element import Element
-from rpw import ui
 from rpw.ui.forms import select_file, select_folder
 from rpw.ui.forms import FlexForm, Label, ComboBox, TextBox, TextBox, Separator, Button
 

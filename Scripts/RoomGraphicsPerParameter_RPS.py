@@ -12,31 +12,19 @@ import clr
 import random
 from random import randint
 
-#Import module for Revit
-clr.AddReference("RevitNodes")
-clr.AddReference('ProtoGeometry')
-import Revit
-clr.ImportExtensions(Revit.Elements)
-
-#import module for the Document and transactions
-clr.AddReference("RevitServices")
-import RevitServices
-from RevitServices.Persistence import DocumentManager
-from RevitServices.Transactions import TransactionManager
-
-#import Revit API
-clr.AddReference('RevitAPI')
+import clr
+# Import RevitAPI
+clr.AddReference("RevitAPI")
 from Autodesk.Revit.DB import *
-from Autodesk.Revit.DB.Architecture import *
-from Autodesk.Revit.DB.Analysis import *
+
+# Import RPW
+import rpw
+from rpw import revit, db, ui, DB, UI
+from rpw.db.element import Element
 
 #document
 doc = __revit__.ActiveUIDocument.Document
 uidoc = __revit__.ActiveUIDocument
-
-#rpw
-import rpw
-from rpw import revit, DB, UI
 
 #ui
 search_param = rpw.ui.forms.TextInput('Input Parameter', default='Department Class', description='Enter a Parameter', sort=True, exit_on_close=True)
