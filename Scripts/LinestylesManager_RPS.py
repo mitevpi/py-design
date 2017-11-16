@@ -1,4 +1,8 @@
-"""Swap out nonconforming line styles"""
+__doc__ = 'Will change out linestyles on line elements based on an input. ' \
+          'standards document as a CSV. Any lines in the document which '   \
+          'do not match the naming conventions in the CSV will be collected, ' \
+          'and the user will be asked to replace them with linestyels which '     \
+          'are included in the standard CSV file.'
 
 __title__ = 'Line Style\nAudit'
 __author__ = 'Petar Mitev'
