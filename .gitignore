@@ -1,0 +1,33 @@
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Misc #
+######################
+.vs
+**/.vs
+.sqlite
+.suo
+**/.idea
+**/v15
+
+# Misc #
+######################
+.index.rst.swp
+.vscode/settings.json
+Extensions/pyRevitKT.extension/pyRevitKT.tab/.vscode/settings.json
+Extensions/pyRevitKT.extension/.vscode/settings.json
+Assets/Quarry/ML Train/naivebayes.pickle
+*.pickle
